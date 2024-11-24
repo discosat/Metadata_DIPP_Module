@@ -1,5 +1,5 @@
-project('example', 'c', 'cpp')
-project_name = 'example'
+project('metadata_test', 'c', 'cpp')
+project_name = 'metadata_test'
 
 # Compiler and linker flags
 cflags = ['-Wall']
@@ -23,6 +23,11 @@ dirs = include_directories(
     'src/include/utils',
 )
 
+# Dependencies
+m_dep = meson.get_compiler('c').find_library('m', required : false)
+csp_dep = dependency('csp', fallback: ['csp', 'csp_dep'], static: true)
+param_dep = dependency('param', fallback: ['param', 'param_dep'], static: true)
+
 # Shared library (SO)
 shared_library(project_name, sources,
     include_directories: dirs,
@@ -37,12 +42,11 @@ if not get_option('cross-compile')
     sources += 'src/utils/yaml_parser.c'
 
     libyaml_dep = dependency('yaml-0.1')
-    m_dep = meson.get_compiler('c').find_library('m', required : false)
 
     # Executable
     executable(project_name + '-exec', sources,
         include_directories: dirs,
         c_args: cflags + ['-g', '-DSHARED_MEMORY=0'],
-        dependencies: [libyaml_dep, m_dep, proto_c_dep]
+        dependencies: [libyaml_dep, m_dep, proto_c_dep, csp_dep, param_dep]
     )
 endif
