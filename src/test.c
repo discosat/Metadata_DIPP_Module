@@ -26,7 +26,7 @@ void save_images(const char *filename_base, const ImageBatch *batch)
         sprintf(filename, "%s%d.png", filename_base, image_index);
 
         int stride = metadata->width * metadata->channels * sizeof(uint8_t);
-        int success = stbi_write_png(filename, metadata->width, metadata->height, metadata->channels, batch->data + offset, stride);
+        int success = stbi_write_png(filename, metadata->width, metadata->height, metadata->channels, batch->data + offset, stride); // Metadata is not written to the file
         if (!success)
         {
             fprintf(stderr, "Error writing image to %s\n", filename);

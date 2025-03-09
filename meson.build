@@ -34,6 +34,7 @@ sources = [
     'src/utils/error_util.c',
     'src/utils/metadata_util.c',
     'src/utils/metadata.pb-c.c',
+    'src/param_config.c'
 ]
 
 dirs = include_directories(
