@@ -13,9 +13,15 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <getopt.h>
-#include <time.h>
 #include <pthread.h>
 
+/* Define custom error codes */
+enum ERROR_CODE {
+    PARAM_QUEUE_ERROR = 1,
+    ZMQ_INIT_ERROR = 2,
+    CSP_ROUTE_WORK_ERROR = 3,
+    CSP_ROUTER_START_ERROR = 4,
+};
 
 static int csp_pthread_create(void * (*routine)(void *)) {
 
@@ -61,7 +67,7 @@ csp_iface_t * add_interface(const char * device_name, uint16_t client_address)
         int error = csp_zmqhub_init(client_address, device_name, 0, &default_iface);
         if (error != CSP_ERR_NONE) {
             csp_print("failed to add ZMQ interface [%s], error: %d\n", device_name, error);
-            exit(1);
+            signal_error_and_exit(ZMQ_INIT_ERROR);
         }
         default_iface->is_default = 1;
     }
@@ -80,19 +86,28 @@ void module()
     /* Parameters for establishing connection to csp network*/
     const char * device_name = "0";
 	csp_iface_t * default_iface;
-    uint16_t client_address = 2; // Parameter through ippc?
+    uint16_t client_address = 2; // Node id for module
 
     /* Init CSP */
     csp_init();
 
     /* Start router */
-    router_start();
+    if(router_start() != 0)
+    {
+        signal_error_and_exit(CSP_ROUTER_START_ERROR);
+    }
 
     /* Add interface */
     default_iface = add_interface(device_name, client_address);
 
-    /* Ping server */
-    csp_ping(NODE_GNSS, 1000, 100, CSP_O_NONE); // Why is ping needed? Maybe adds delay?
+    /* 
+    Perheps not optimal, but seems to works.
+    Ensures that csp router is ready for sending parameter request.
+    */
+    if(csp_route_work() != CSP_ERR_NONE)
+    {
+        signal_error_and_exit(CSP_ROUTE_WORK_ERROR);
+    }
 
     /* Create queue */
     param_queue_t queue;
@@ -108,8 +123,7 @@ void module()
 
     if (param_pull_queue(&queue, CSP_PRIO_HIGH, VERBOSE, NODE_GNSS, TIMEOUT) < 0)
     {
-        printf("Retrieving multiple parameter values failed\n");
-        // Error handling? 
+        signal_error_and_exit(PARAM_QUEUE_ERROR); 
     }
 
     /* Get number of images in input batch */

@@ -1,4 +1,4 @@
-project('example', 'c', 'cpp',subproject_dir: 'lib',default_options: [
+project('metadata_module', 'c', 'cpp',subproject_dir: 'lib',default_options: [
 	'c_std=gnu11', 
 	'b_lto=false',
 	'default_library=static',
@@ -15,7 +15,7 @@ project('example', 'c', 'cpp',subproject_dir: 'lib',default_options: [
 	'param:list_dynamic=true',
 	'param:vmem_fram=false', 
 ])
-project_name = 'example'
+project_name = 'metadata_module'
 
 # Compiler and linker flags
 cflags = ['-Wall']
@@ -27,7 +27,7 @@ param_dep = dependency('param', fallback: ['param', 'param_dep'], static:true)
 
 # Source files
 sources = [
-    'src/module_template.c', # module file (REMEMBER TO CHANGE!)
+    'src/metadata_module.c',
     'src/utils/memory_util.c',
     'src/utils/config_util.c',
     'src/utils/batch_util.c',
